@@ -94,10 +94,9 @@ function Hour(p:HourProp){
 
 
 function CirclePath(){
-
   return <>
-    <Hour hour={12}/>
-    <Hour hour={1}/>
+    {Array(12).fill('').map(
+        (_,ind)=><Hour hour={ind+1}/>)}
   </>
 }
 export default App;
