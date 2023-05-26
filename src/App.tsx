@@ -5,6 +5,7 @@ import logo from './logo.svg';
 import './App.css';
 type Children = { children?: ReactNode };
 type AngleProp = { angle?: number };
+type HourProp = { hour: number,key?:number|string };
 
 function App() {
   return (
@@ -60,92 +61,43 @@ function Grid(p:AngleProp){
       stroke="pink" {...transformOpt} />
 }
 
-function Hour12(){
-  const x = center;
-  const y =center-textRadius;
-  return <text x={x} y={y} fontSize={fontSize} alignmentBaseline="central" textAnchor="middle">12</text>
+const hourCoords=[
+  {x:0,y:0}, //0
+  {x:center+dsin30,y:center-dcos30} , //1
+  {x:center+dcos30,y:center-dsin30} , //2
+  {x:center+textRadius,y:center} , //3
+  {x:center+dcos30,y:center+dsin30} , //4
+  {x:center+dsin30,y:center+dcos30} , //5
+  {x:center,y:center+textRadius} , //6
+  {x:center-dsin30,y:center+dcos30} , //7
+  {x:center-dcos30,y:center+dsin30} , //8
+  {x:center-textRadius,y:center} , //9
+  {x:center-dcos30,y:center-dsin30} , //10
+  {x:center-dsin30,y:center-dcos30} , //11
+  {x:center,y:center-textRadius} , //12
+]
+function Hour(p:HourProp){
+  const key = "hour_"+(p.key ?? p.hour)
+
+  return (
+  <text
+      key={key}
+      fontSize={fontSize}
+      alignmentBaseline="central"
+      textAnchor="middle"
+      {...hourCoords[p.hour]}>
+    {p.hour}
+  </text>
+  )
 }
 
-
-
-function Hour6(){
-  const x = center;
-  const y =center+textRadius;
-  return <text x={x} y={y} fontSize={fontSize}  alignmentBaseline="central" textAnchor="middle">6</text>
-}
-
-function Hour3(){
-  const x = center+textRadius;
-  const y =center;
-  return <text x={x} y={y} fontSize={fontSize} alignmentBaseline="central" textAnchor="middle">3</text>
-}
-
-
-function Hour9(){
-  const x = center-textRadius;
-  const y =center;
-  return <text x={x} y={y} fontSize={fontSize} alignmentBaseline="central" textAnchor="middle">9</text>
-}
-
-function Hour1(){
-  const x = center+dsin30;
-  const y =center-dcos30;
-  return <text x={x} y={y} fontSize={fontSize}  alignmentBaseline="central" textAnchor="middle">1</text>
-}
-function Hour2(){
-  const x = center+dcos30;
-  const y =center-dsin30;
-  return <text x={x} y={y} fontSize={fontSize}  alignmentBaseline="central" textAnchor="middle">2</text>
-}
-function Hour5(){
-  const x = center+dsin30;
-  const y =center+dcos30;
-  return <text x={x} y={y} fontSize={fontSize}  alignmentBaseline="central" textAnchor="middle">5</text>
-}
-function Hour4(){
-  const x = center+dcos30;
-  const y =center+dsin30;
-  return <text x={x} y={y} fontSize={fontSize}  alignmentBaseline="central" textAnchor="middle">4</text>
-}
-
-
-function Hour11(){
-  const x = center-dsin30;
-  const y =center-dcos30;
-  return <text x={x} y={y} fontSize={fontSize}  alignmentBaseline="central" textAnchor="middle">11</text>
-}
-function Hour10(){
-  const x = center-dcos30;
-  const y =center-dsin30;
-  return <text x={x} y={y} fontSize={fontSize}  alignmentBaseline="central" textAnchor="middle">10</text>
-}
-function Hour7(){
-  const x = center-dsin30;
-  const y =center+dcos30;
-  return <text x={x} y={y} fontSize={fontSize}  alignmentBaseline="central" textAnchor="middle">7</text>
-}
-function Hour8(){
-  const x = center-dcos30;
-  const y =center+dsin30;
-  return <text x={x} y={y} fontSize={fontSize}  alignmentBaseline="central" textAnchor="middle">8</text>
-}
 
 
 function CirclePath(){
 
   return <>
-    <Hour12/>
-    <Hour1/>
-    <Hour2/>
-    <Hour3/>
-    <Hour4/>
-    <Hour5/>
-    <Hour6/>
-    <Hour7/>
-    <Hour8/>
-    <Hour9/>
-    <Hour10/>
-    <Hour11/>
+    <Hour hour={12}/>
+    <Hour hour={1}/>
   </>
 }
 export default App;
