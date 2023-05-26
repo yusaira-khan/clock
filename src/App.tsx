@@ -45,7 +45,7 @@ function Clock(){
     <Grid angle={30}/>
     <Grid angle={60}/>
     <Circle/>
-    <CirclePath/>
+    <ClockNumbers/>
   </SVG>
 }
 function Grid(p:AngleProp){
@@ -93,7 +93,7 @@ function Hour(p:HourProp){
 
 
 
-function CirclePath(){
+function ClockNumbers(){
   return <>
     {Array(12).fill('').map(
         (_,ind)=><Hour hour={ind+1}/>)}
