@@ -3,8 +3,6 @@ import React, {
   useState
 } from 'react';
 import './App.css';
-type AngleProp = { angle?: number };
-type HourProp = { hour: number,key?:number|string };
 
 function App() {
   return <div className="App"> <Clock/> </div>
@@ -32,9 +30,9 @@ function calculateFractionalAngle(maxWhole:number,currentWhole:number,maxFractio
 
 function Clock(){
   return <svg xmlns="http://www.w3.org/2000/svg" width={sideSize} height={sideSize} version="1.1">
-    <Circle/>
     <Face/>
     <Hands/>
+    <Rims/>
   </svg>
 }
 
@@ -43,8 +41,12 @@ function Hands(){
   const [currentTime, setTime]= useState(new Date())
 
   const hourHandSize= outerRadius*0.7
+  const hourHandWidth= 10
+  const arcRadius = hourHandWidth/2
   const secondHandSize= textRadius
+  const secondHandWidth= 4
   const minuteHandSize= (hourHandSize+secondHandSize*2)/3
+  const minuteHandWidth= (hourHandWidth+secondHandWidth)/2
   useEffect(() => {
     const intervalId = setInterval(() => {
       setTime(new Date());
@@ -53,6 +55,7 @@ function Hands(){
     // clear interval on re-render to avoid memory leaks
     return () => clearInterval(intervalId);
   }, [currentTime]);
+
 
 
   function hourAngle() {
@@ -68,35 +71,57 @@ function Hands(){
   function secondAngle() {
     return calculateAngle(60, currentTime.getSeconds())
   }
-  function HourHand(){
-    const points = {x1:center,x2:center, y1: center, y2: center-hourHandSize }
-    const transformOpt={transform:`rotate(${hourAngle()},${center},${center})`}
 
-    return <line stroke="red" {...transformOpt} strokeWidth={10} {...points} strokeLinecap="round"/>
-  }
 
-  function MinuteHand(){
-    const points = {x1:center,x2:center, y1: center, y2: center-minuteHandSize }
-    const transformOpt={transform:`rotate(${minuteAngle()},${center},${center})`}
 
-    return <line stroke="green" {...transformOpt} strokeWidth={7} {...points} strokeLinecap="round"/>
+
+  type HandProp = {angleFunction: (()=>number), handSize: number, handWidth: number, }
+  function Hand({angleFunction,handSize,handWidth}:HandProp){
+    const transformOpt={transform:`rotate(${angleFunction()},${center},${center})`}
+    const verticalMovement = handSize-arcRadius*2
+    return <g stroke="black"
+              {...transformOpt}
+              strokeWidth={1} fill="purple" fillOpacity="80%">
+      <path d={
+        `M ${center},${center} 
+         h ${-handWidth/2} 
+         v ${-(verticalMovement)} 
+         c ${0} ${-arcRadius*2} , ${handWidth} ${-arcRadius*2}, ${handWidth} 0  
+         v ${verticalMovement} 
+         z`
+      }/>
+    </g>
   }
   function SecondHand(){
-    const points = {x1:center,x2:center, y1: center, y2: center-secondHandSize }
-    const transformOpt={transform:`rotate(${secondAngle()},${center},${center})`}
+    return <Hand
+        angleFunction={secondAngle}
+        handSize={secondHandSize}
+        handWidth={secondHandWidth}
+        />
+     }
 
-    return <line stroke="blue" {...transformOpt} strokeWidth={4} {...points} strokeLinecap="round"/>
+  function MinuteHand(){
+    return <Hand
+        angleFunction={minuteAngle}
+        handSize={minuteHandSize}
+        handWidth={minuteHandWidth}
+        />
+    }
+  function HourHand(){
+    const transformOpt={transform:`rotate(${0},${center},${center})`}
+
+    return <Hand
+        angleFunction={hourAngle}
+        handSize={hourHandSize}
+        handWidth={hourHandWidth}
+        />
   }
-function Center(){
-  return <circle cx={center} cy={center} r={5} stroke="gold" strokeWidth={borderWidth} fill="none" />
-}
+
   return <g>
     <HourHand/>
     <MinuteHand/>
     <SecondHand/>
-    <Center/>
   </g>
-    
 }
 
 
@@ -119,8 +144,9 @@ function Face(){
     {x:center,y:center-textRadius} , //12
   ]
 
+  type HourProp = { hour: number};
   function Hour(p:HourProp){
-    const key = "rhour_"+(p.key ?? p.hour)
+    const key = "rhour_"+p.hour
     const coords = hourCoords[p.hour]
     const transform = {transform:`rotate(${calculateAngle(12, p.hour)},${center},${center})`}
     const antiTransform = {transform:`rotate(${-calculateAngle(12, p.hour)},${coords.x},${coords.y})`}
@@ -138,7 +164,7 @@ function Face(){
     </text></g>
   }
 
-  function ClockHours(){
+  function Hours(){
     return <g id="hours">
       {
         Array(12).fill('').map(
@@ -149,7 +175,7 @@ function Face(){
         )}
     </g>
   }
-  function ClockMinutes(){
+  function Minutes(){
     return <g id="minutes">
       {
         Array(60).fill(0).map(
@@ -173,28 +199,72 @@ function Face(){
     </g>
   }
 
+
   return <g id="face">
-    <ClockHours/>
-    <ClockMinutes/>
+    <Minutes/>
+    <Hours/>
   </g>
 }
 
 
-function Circle(){
-  function Grid(p:AngleProp){
-    const path =`M0,${center} h${sideSize} M${center},0 v${sideSize}`
-    const transformOpt={transform:""}
-    if ( p.angle ) {
-      transformOpt["transform"]=`rotate(${p.angle},${center},${center})`
-    }
-    return <path
-        d={path}
-        fill="none"
-        strokeWidth={2}
-        stroke="pink" {...transformOpt} />
+function Rims(){
+  type CircleProps={radius:number,color:string,border?:number,mask?:string}
+  function Circle({radius,color,border=1,mask=""}:CircleProps){
+    const borderOpt = {strokeWidth:border, stroke:"black"}
+    return <circle cx={center}
+                   cy={center}
+                   r={radius}
+                   fill={color}
+                   {...(border>0? borderOpt:{})}
+                   mask={mask}
+                    />
+  }
+
+  function MaskedRing({radius,color, border=borderWidth}:CircleProps){
+ return <g>
+   <mask id="rimMask">
+     <Circle radius={radius+border} color="white" border={0}/>
+     <Circle radius={radius} color="black" border={0}/>
+   </mask>
+   <Circle radius={radius+border} color={color} border={4} mask="url(#rimMask)"/>
+   <Circle radius={radius} border={2} color="none"/>
+ </g>
+
+  }
+
+  function Rim(){
+    // return <Circle radius={outerRadius} color="none" border={borderWidth}/>
+    return <MaskedRing radius={outerRadius} color="#444"/>
+  }
+
+
+  function Center(){
+    return <Circle radius={borderWidth} color="gold"/>
   }
   return <g>
-  <circle cx={center} cy={center} r={outerRadius} stroke="black" strokeWidth={borderWidth} fill="none" />
+    <Rim/>
+    <Center/>
   </g>
+}
+function Grids(){
+  type AngleProp = { angle?: number };
+function Grid(p:AngleProp){
+  const path =`M0,${center} h${sideSize} M${center},0 v${sideSize}`
+  const transformOpt={transform:""}
+  if ( p.angle ) {
+    transformOpt["transform"]=`rotate(${p.angle},${center},${center})`
+  }
+  return <path
+      d={path}
+      fill="none"
+      strokeWidth={2}
+      stroke="pink" {...transformOpt} />
+}
+  return <g>
+    <Grid angle={0}/>
+    <Grid angle={30}/>
+    <Grid angle={60}/>
+  </g>
+
 }
 export default App;
