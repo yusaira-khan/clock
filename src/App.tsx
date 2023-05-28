@@ -34,18 +34,20 @@ function SVG(p:Children){
 function Circle(){
   return <>
     <circle cx={center} cy={center} r={outerRadius} stroke="black" strokeWidth={borderWidth} fill="none" />
+    <circle cx={center} cy={center} r={5} stroke="black" strokeWidth={borderWidth} fill="none" />
   </>
 }
 
 function Clock(){
   return <SVG>
-    <Circle/>
     <ClockHours/>
     <ClockMinutes/>
     <MinuteHand/>
     <HourHand/>
+    <Circle/>
   </SVG>
 }
+
 function Grid(p:AngleProp){
   const path =`M0,${center} h${sideSize} M${center},0 v${sideSize}`
   const transformOpt={transform:""}
@@ -111,7 +113,7 @@ function RotatedHour(p:HourProp){
 
 
 function ClockHours(){
-  return <>
+  return <g>
     {
       Array(12).fill('').map(
         (_,ind)=> {
@@ -120,7 +122,7 @@ function ClockHours(){
               hour={h}/>
         }
       )}
-  </>
+  </g>
 }
 function HourHand(){
   const length=100
@@ -128,7 +130,7 @@ function HourHand(){
   const transformOpt={transform:`rotate(${30},${center},${center})`}
 
 
-  return <line stroke="red" {...transformOpt} strokeWidth={10} {...points}/>
+  return <line stroke="red" {...transformOpt} strokeWidth={10} {...points} strokeLinecap="round"/>
 }
 
 function MinuteHand(){
@@ -137,16 +139,17 @@ function MinuteHand(){
   const transformOpt={transform:`rotate(${45},${center},${center})`}
 
 
-  return <line stroke="green" {...transformOpt} strokeWidth={7} {...points}/>
+  return <line stroke="green" {...transformOpt} strokeWidth={7} {...points} strokeLinecap="round"/>
 }
 
 function ClockMinutes(){
-  return <>
+  return <g>
     {
-      Array(60).fill(5).map(
+      Array(60).fill(0).map(
           (val,ind)=> {
             const key = "minute_"+ind
             const coords = {x:center,y:center-outerRadius}
+            const width =3
             const length =10
             const points = {x1:coords.x,x2:coords.x, y1: coords.y, y2:coords.y+length }
             const angle = ind*6
@@ -156,10 +159,11 @@ function ClockMinutes(){
                     key={key}
                     stroke="black"
                     {...transformOpt}
-                    strokeWidth={val}
+                    strokeWidth={width}
+                    strokeLinecap="round"
                     {...points}/>)
           }
       )}
-  </>
+  </g>
 }
 export default App;
