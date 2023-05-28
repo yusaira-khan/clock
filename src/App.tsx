@@ -1,11 +1,8 @@
 import React, {
-  ReactNode,
   useEffect,
   useState
 } from 'react';
-import logo from './logo.svg';
 import './App.css';
-type Children = { children?: ReactNode };
 type AngleProp = { angle?: number };
 type HourProp = { hour: number,key?:number|string };
 
@@ -72,7 +69,6 @@ function Hands(){
     return calculateAngle(60, currentTime.getSeconds())
   }
   function HourHand(){
-    const length=100
     const points = {x1:center,x2:center, y1: center, y2: center-hourHandSize }
     const transformOpt={transform:`rotate(${hourAngle()},${center},${center})`}
 
@@ -125,10 +121,9 @@ function Face(){
 
   function Hour(p:HourProp){
     const key = "rhour_"+(p.key ?? p.hour)
-    const coordsIndex = p.hour
     const coords = hourCoords[p.hour]
     const transform = {transform:`rotate(${calculateAngle(12, p.hour)},${center},${center})`}
-    const transform2 = {transform:`rotate(${-calculateAngle(12, p.hour)},${coords.x},${coords.y})`}
+    const antiTransform = {transform:`rotate(${-calculateAngle(12, p.hour)},${coords.x},${coords.y})`}
     return <g key={key}
     >
       <text
