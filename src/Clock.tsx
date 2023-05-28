@@ -14,7 +14,7 @@ export function useTime(delay:number){
                     delay*1000);
             return () => clearInterval(intervalId);// clear interval on re-render to avoid memory leaks
            },
-     [currentTime]);
+     [currentTime,delay]);
     return currentTime
 }
 
