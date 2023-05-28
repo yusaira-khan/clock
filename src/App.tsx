@@ -1,5 +1,7 @@
 import React, {
-  ReactNode
+  ReactNode,
+  useEffect,
+  useState
 } from 'react';
 import logo from './logo.svg';
 import './App.css';
@@ -32,10 +34,43 @@ function Clock(){
 }
 
 function Hands(){
+  // const currentTime = new Date("July 21, 1983 09:15:45");
+  const [currentTime, setTime]= useState(new Date())
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+
+    // clear interval on re-render to avoid memory leaks
+    return () => clearInterval(intervalId);
+  }, [currentTime]);
+
+  function calculateAngle(maxNum:number,current:number){
+    return (current%maxNum)*(360.0/maxNum)
+  }
+
+  function calculateFractionalAngle(maxWhole:number,currentWhole:number,maxFraction:number,currentFraction:number){
+    return  (currentWhole%maxWhole + currentFraction*1.0/maxFraction)*(360.0/maxWhole)
+  }
+
+
+  function hourAngle() {
+    // return calculateAngle(12, currentTime.getHours())
+    return calculateFractionalAngle(12, currentTime.getHours(), 60,currentTime.getMinutes())
+  }
+
+  function minuteAngle() {
+    //return calculateAngle(60, currentTime.getMinutes())
+    return calculateFractionalAngle(60, currentTime.getMinutes(), 60,currentTime.getSeconds())
+  }
+
+  function secondAngle() {
+    return calculateAngle(60, currentTime.getSeconds())
+  }
   function HourHand(){
     const length=100
     const points = {x1:center,x2:center, y1: center, y2: center-length }
-    const transformOpt={transform:`rotate(${30},${center},${center})`}
+    const transformOpt={transform:`rotate(${hourAngle()},${center},${center})`}
 
     return <line stroke="red" {...transformOpt} strokeWidth={10} {...points} strokeLinecap="round"/>
   }
@@ -43,19 +78,19 @@ function Hands(){
   function MinuteHand(){
     const length=200
     const points = {x1:center,x2:center, y1: center, y2: center-length }
-    const transformOpt={transform:`rotate(${45},${center},${center})`}
+    const transformOpt={transform:`rotate(${minuteAngle()},${center},${center})`}
 
     return <line stroke="green" {...transformOpt} strokeWidth={7} {...points} strokeLinecap="round"/>
   }
   function SecondHand(){
     const length=innerRadius
     const points = {x1:center,x2:center, y1: center, y2: center-length }
-    const transformOpt={transform:`rotate(${60},${center},${center})`}
+    const transformOpt={transform:`rotate(${secondAngle()},${center},${center})`}
 
     return <line stroke="blue" {...transformOpt} strokeWidth={4} {...points} strokeLinecap="round"/>
   }
 function Center(){
-  return <circle cx={center} cy={center} r={5} stroke="black" strokeWidth={borderWidth} fill="none" />
+  return <circle cx={center} cy={center} r={5} stroke="gold" strokeWidth={borderWidth} fill="none" />
 }
   return <g>
     <HourHand/>
