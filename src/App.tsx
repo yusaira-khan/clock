@@ -19,9 +19,9 @@ function App() {
 const sideSize=800;
 const center = 400;
 const outerRadius = 300;
-const textRadius = 270;
+const textRadius = 265;
 const innerRadius = 240;
-const fontSize = 48;
+const fontSize = 42;
 const borderWidth = 10
 const sin30 = 0.5
 const cos30 = 0.86602540378
@@ -34,16 +34,12 @@ function SVG(p:Children){
 function Circle(){
   return <>
     <circle cx={center} cy={center} r={outerRadius} stroke="black" strokeWidth={borderWidth} fill="none" />
-    <circle cx={center} cy={center} r={innerRadius} stroke="gray" strokeWidth={borderWidth/2} fill="none" />
-    <circle cx={center} cy={center} r={textRadius} stroke="gray" strokeWidth={borderWidth/2} fill="none" />
   </>
 }
 
 function Clock(){
   return <SVG>
-    <Grid/>
-    <Grid angle={30}/>
-    <Grid angle={60}/>
+
     <Circle/>
     <ClockNumbers/>
   </SVG>
@@ -63,7 +59,7 @@ function Grid(p:AngleProp){
 
 const hourCoords=[
   {x:0,y:0}, //0
-  {x:center+dsin30,y:center-dcos30} , //1
+  {x:center+dsin30,y:center-dcos30+5} , //1
   {x:center+dcos30,y:center-dsin30} , //2
   {x:center+textRadius,y:center} , //3
   {x:center+dcos30,y:center+dsin30} , //4
@@ -73,30 +69,56 @@ const hourCoords=[
   {x:center-dcos30,y:center+dsin30} , //8
   {x:center-textRadius,y:center} , //9
   {x:center-dcos30,y:center-dsin30} , //10
-  {x:center-dsin30,y:center-dcos30} , //11
+  {x:center-dsin30,y:center-dcos30+5} , //11
   {x:center,y:center-textRadius} , //12
 ]
-function Hour(p:HourProp){
-  const key = "hour_"+(p.key ?? p.hour)
 
+const hourAngles=[
+  {a:0}, //0
+  {a:-5}, //1
+  {a:-10}, //2
+  {a:0}, //3
+  {a:10}, //4
+  {a:5}, //5
+  {a:0}, //6
+  {a:-5}, //7
+  {a:-10}, //8
+  {a:0}, //9
+  {a:10}, //10
+  {a:5}, //11
+  {a:0}, //12
+]
+
+function RotatedHour(p:HourProp){
+  const key = "rhour_"+(p.key ?? p.hour)
+  const coordsIndex = p.hour
+  const coords = hourCoords[coordsIndex]
+  const transformOpt={transform:`rotate(${hourAngles[coordsIndex].a},${coords.x},${coords.y})`}
   return (
-  <text
-      key={key}
-      fontSize={fontSize}
-      alignmentBaseline="central"
-      textAnchor="middle"
-      {...hourCoords[p.hour]}>
-    {p.hour}
-  </text>
-  )
+      <text
+          key={key}
+          fontSize={fontSize}
+          fontFamily="DIN Condensed"
+          alignmentBaseline="central"
+          textAnchor="middle"
+          style={{lineHeight:1}}
+          {...transformOpt}
+          {...coords}>
+        {p.hour}
+      </text>)
 }
-
 
 
 function ClockNumbers(){
   return <>
-    {Array(12).fill('').map(
-        (_,ind)=><Hour hour={ind+1}/>)}
+    {
+      Array(12).fill('').map(
+        (_,ind)=> {
+          const h = ind + 1
+          return <RotatedHour
+              hour={h}/>
+        }
+      )}
   </>
 }
 export default App;
