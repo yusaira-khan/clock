@@ -17,7 +17,6 @@ const sideSize=800;
 const center = 400;
 const outerRadius = 300;
 const textRadius = 265;
-const innerRadius = 240;
 const fontSize = 42;
 const borderWidth = 10
 const sin30 = 0.5
@@ -45,6 +44,10 @@ function Clock(){
 function Hands(){
   // const currentTime = new Date("July 21, 1983 09:15:45");
   const [currentTime, setTime]= useState(new Date())
+
+  const hourHandSize= outerRadius*0.7
+  const secondHandSize= textRadius
+  const minuteHandSize= (hourHandSize+secondHandSize*2)/3
   useEffect(() => {
     const intervalId = setInterval(() => {
       setTime(new Date());
@@ -70,22 +73,20 @@ function Hands(){
   }
   function HourHand(){
     const length=100
-    const points = {x1:center,x2:center, y1: center, y2: center-length }
+    const points = {x1:center,x2:center, y1: center, y2: center-hourHandSize }
     const transformOpt={transform:`rotate(${hourAngle()},${center},${center})`}
 
     return <line stroke="red" {...transformOpt} strokeWidth={10} {...points} strokeLinecap="round"/>
   }
 
   function MinuteHand(){
-    const length=200
-    const points = {x1:center,x2:center, y1: center, y2: center-length }
+    const points = {x1:center,x2:center, y1: center, y2: center-minuteHandSize }
     const transformOpt={transform:`rotate(${minuteAngle()},${center},${center})`}
 
     return <line stroke="green" {...transformOpt} strokeWidth={7} {...points} strokeLinecap="round"/>
   }
   function SecondHand(){
-    const length=innerRadius
-    const points = {x1:center,x2:center, y1: center, y2: center-length }
+    const points = {x1:center,x2:center, y1: center, y2: center-secondHandSize }
     const transformOpt={transform:`rotate(${secondAngle()},${center},${center})`}
 
     return <line stroke="blue" {...transformOpt} strokeWidth={4} {...points} strokeLinecap="round"/>
@@ -108,7 +109,7 @@ function Center(){
 function Face(){
   const hourCoords=[
     {x:0,y:0}, //0
-    {x:center+dsin30,y:center-dcos30+5} , //1
+    {x:center+dsin30,y:center-dcos30} , //1
     {x:center+dcos30,y:center-dsin30} , //2
     {x:center+textRadius,y:center} , //3
     {x:center+dcos30,y:center+dsin30} , //4
@@ -118,7 +119,7 @@ function Face(){
     {x:center-dcos30,y:center+dsin30} , //8
     {x:center-textRadius,y:center} , //9
     {x:center-dcos30,y:center-dsin30} , //10
-    {x:center-dsin30,y:center-dcos30+5} , //11
+    {x:center-dsin30,y:center-dcos30} , //11
     {x:center,y:center-textRadius} , //12
   ]
 
