@@ -47,14 +47,22 @@ function Hands(){
 
     return <line stroke="green" {...transformOpt} strokeWidth={7} {...points} strokeLinecap="round"/>
   }
+  function SecondHand(){
+    const length=innerRadius
+    const points = {x1:center,x2:center, y1: center, y2: center-length }
+    const transformOpt={transform:`rotate(${60},${center},${center})`}
+
+    return <line stroke="blue" {...transformOpt} strokeWidth={4} {...points} strokeLinecap="round"/>
+  }
 function Center(){
   return <circle cx={center} cy={center} r={5} stroke="black" strokeWidth={borderWidth} fill="none" />
 }
   return <g>
-        <HourHand/>
-        <MinuteHand/>
-        <Center/>
-      </g>
+    <HourHand/>
+    <MinuteHand/>
+    <SecondHand/>
+    <Center/>
+  </g>
     
 }
 
