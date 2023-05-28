@@ -39,9 +39,11 @@ function Circle(){
 
 function Clock(){
   return <SVG>
-
     <Circle/>
-    <ClockNumbers/>
+    <ClockHours/>
+    <ClockMinutes/>
+    <MinuteHand/>
+    <HourHand/>
   </SVG>
 }
 function Grid(p:AngleProp){
@@ -102,14 +104,13 @@ function RotatedHour(p:HourProp){
           alignmentBaseline="central"
           textAnchor="middle"
           style={{lineHeight:1}}
-          {...transformOpt}
           {...coords}>
         {p.hour}
       </text>)
 }
 
 
-function ClockNumbers(){
+function ClockHours(){
   return <>
     {
       Array(12).fill('').map(
@@ -118,6 +119,46 @@ function ClockNumbers(){
           return <RotatedHour
               hour={h}/>
         }
+      )}
+  </>
+}
+function HourHand(){
+  const length=100
+  const points = {x1:center,x2:center, y1: center, y2: center-length }
+  const transformOpt={transform:`rotate(${30},${center},${center})`}
+
+
+  return <line stroke="red" {...transformOpt} strokeWidth={10} {...points}/>
+}
+
+function MinuteHand(){
+  const length=200
+  const points = {x1:center,x2:center, y1: center, y2: center-length }
+  const transformOpt={transform:`rotate(${45},${center},${center})`}
+
+
+  return <line stroke="green" {...transformOpt} strokeWidth={7} {...points}/>
+}
+
+function ClockMinutes(){
+  return <>
+    {
+      Array(60).fill(5).map(
+          (val,ind)=> {
+            const key = "minute_"+ind
+            const coords = {x:center,y:center-outerRadius}
+            const length =10
+            const points = {x1:coords.x,x2:coords.x, y1: coords.y, y2:coords.y+length }
+            const angle = ind*6
+            const transformOpt={transform:`rotate(${angle},${center},${center})`}
+            return (
+                <line
+                    key={key}
+                    stroke="black"
+                    {...transformOpt}
+                    strokeWidth={val}
+                    {...points}/>)
+          }
       )}
   </>
 }
