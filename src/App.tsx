@@ -3,6 +3,9 @@ import React, {
   useState
 } from 'react';
 import './App.css';
+import {
+  text
+} from "stream/consumers";
 
 function App() {
   return <div className="App"> <Clock/> </div>
@@ -11,8 +14,8 @@ function App() {
 const sideSize=800;
 const center = 400;
 const outerRadius = 300;
-const textRadius = 265;
-const fontSize = 42;
+const textRadius = 240;
+const fontSize = 60;
 const borderWidth = 10
 const sin30 = 0.5
 const cos30 = 0.86602540378
@@ -36,80 +39,79 @@ function Clock(){
   </svg>
 }
 
-function Hands(){
-  // const currentTime = new Date("July 21, 1983 09:15:45");
+function useTime(frequency:number){
   const [currentTime, setTime]= useState(new Date())
 
-  const hourHandSize= outerRadius*0.7
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setTime(new Date());
+    }, frequency*1000);
+
+    // clear interval on re-render to avoid memory leaks
+    return () => clearInterval(intervalId);
+  }, [currentTime]);
+  return currentTime
+}
+function Hands(){
+  // const currentTime = new Date("July 21, 1983 09:15:45");
+  const hourHandSize= outerRadius*0.6
   const hourHandWidth= 10
   const arcRadius = hourHandWidth/2
   const secondHandSize= textRadius
   const secondHandWidth= 4
   const minuteHandSize= (hourHandSize+secondHandSize*2)/3
   const minuteHandWidth= (hourHandWidth+secondHandWidth)/2
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
-
-    // clear interval on re-render to avoid memory leaks
-    return () => clearInterval(intervalId);
-  }, [currentTime]);
-
-
-
-  function hourAngle() {
-    // return calculateAngle(12, currentTime.getHours())
-    return calculateFractionalAngle(12, currentTime.getHours(), 60,currentTime.getMinutes())
-  }
-
-  function minuteAngle() {
-    //return calculateAngle(60, currentTime.getMinutes())
-    return calculateFractionalAngle(60, currentTime.getMinutes(), 60,currentTime.getSeconds())
-  }
-
-  function secondAngle() {
-    return calculateAngle(60, currentTime.getSeconds())
-  }
-
-
-
-
+  
   type HandProp = {angleFunction: (()=>number), handSize: number, handWidth: number, }
   function Hand({angleFunction,handSize,handWidth}:HandProp){
-    const transformOpt={transform:`rotate(${angleFunction()},${center},${center})`}
     const verticalMovement = handSize-arcRadius*2
-    return <g stroke="black"
-              {...transformOpt}
-              strokeWidth={1} fill="purple" fillOpacity="80%">
-      <path d={
-        `M ${center},${center} 
-         h ${-handWidth/2} 
-         v ${-(verticalMovement)} 
-         c ${0} ${-arcRadius*2} , ${handWidth} ${-arcRadius*2}, ${handWidth} 0  
-         v ${verticalMovement} 
-         z`
-      }/>
-    </g>
+    return <path
+      d={
+        ` M ${center},${center} 
+          h ${-handWidth/2} 
+          v ${-(verticalMovement)} 
+          c ${0} ${-arcRadius*2} , ${handWidth} ${-arcRadius*2}, ${handWidth} 0  
+          v ${verticalMovement} 
+          z`
+      }
+      transform={`rotate(${angleFunction()},${center},${center})`}
+      stroke="black" strokeWidth="1"
+      fill="purple" fillOpacity="80%"
+    />
   }
+
   function SecondHand(){
+    const currentTime = useTime(1)
+    function secondAngle() {
+      return calculateAngle(60, currentTime.getSeconds())
+    }
     return <Hand
         angleFunction={secondAngle}
         handSize={secondHandSize}
         handWidth={secondHandWidth}
         />
-     }
+  }
 
   function MinuteHand(){
+    const currentTime = useTime(15)
+    function minuteAngle() {
+      //return calculateAngle(60, currentTime.getMinutes())
+      return calculateFractionalAngle(60, currentTime.getMinutes(), 60,currentTime.getSeconds())
+    }
     return <Hand
         angleFunction={minuteAngle}
         handSize={minuteHandSize}
         handWidth={minuteHandWidth}
         />
-    }
-  function HourHand(){
-    const transformOpt={transform:`rotate(${0},${center},${center})`}
+  }
 
+  function HourHand(){
+    const currentTime = useTime(60)
+    function hourAngle() {
+      // return calculateAngle(12, currentTime.getHours())
+      return calculateFractionalAngle(12, currentTime.getHours(), 60,currentTime.getMinutes())
+    }
     return <Hand
         angleFunction={hourAngle}
         handSize={hourHandSize}
@@ -123,9 +125,6 @@ function Hands(){
     <SecondHand/>
   </g>
 }
-
-
-
 
 function Face(){
   const hourCoords=[
@@ -183,7 +182,7 @@ function Face(){
               const key = "minute_"+ind
               const coords = {x:center,y:center-outerRadius}
               const width =3
-              const length =10
+              const length =(outerRadius-textRadius)*0.4
               const points = {x1:coords.x,x2:coords.x, y1: coords.y, y2:coords.y+length }
               const angle = ind*6
               const transformOpt={transform:`rotate(${angle},${center},${center})`}
@@ -208,17 +207,7 @@ function Face(){
 
 
 function Rims(){
-  type CircleProps={radius:number,color:string,border?:number,mask?:string}
-  function Circle({radius,color,border=1,mask=""}:CircleProps){
-    const borderOpt = {strokeWidth:border, stroke:"black"}
-    return <circle cx={center}
-                   cy={center}
-                   r={radius}
-                   fill={color}
-                   {...(border>0? borderOpt:{})}
-                   mask={mask}
-                    />
-  }
+
 
   function MaskedRing({radius,color, border=borderWidth}:CircleProps){
  return <g>
@@ -229,7 +218,6 @@ function Rims(){
    <Circle radius={radius+border} color={color} border={4} mask="url(#rimMask)"/>
    <Circle radius={radius} border={2} color="none"/>
  </g>
-
   }
 
   function Rim(){
@@ -266,5 +254,17 @@ function Grid(p:AngleProp){
     <Grid angle={60}/>
   </g>
 
+}
+
+type CircleProps={radius:number,color:string,border?:number,mask?:string}
+function Circle({radius,color,border=1,mask=""}:CircleProps){
+  const borderOpt = {strokeWidth:border, stroke:"black"}
+  return <circle cx={center}
+                 cy={center}
+                 r={radius}
+                 fill={color}
+                 {...(border>0? borderOpt:{})}
+                 mask={mask}
+  />
 }
 export default App;
