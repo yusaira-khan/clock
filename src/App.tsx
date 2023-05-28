@@ -24,12 +24,21 @@ const sin30 = 0.5
 const cos30 = 0.86602540378
 const dsin30 = sin30 * textRadius;
 const dcos30 = cos30 * textRadius
+function calculateAngle(maxNum:number,current:number){
+  return (current%maxNum)*(360.0/maxNum)
+}
+
+function calculateFractionalAngle(maxWhole:number,currentWhole:number,maxFraction:number,currentFraction:number){
+  return  (currentWhole%maxWhole + currentFraction*1.0/maxFraction)*(360.0/maxWhole)
+}
+
+
 
 function Clock(){
   return <svg xmlns="http://www.w3.org/2000/svg" width={sideSize} height={sideSize} version="1.1">
+    <Circle/>
     <Face/>
     <Hands/>
-    <Circle/>
   </svg>
 }
 
@@ -44,14 +53,6 @@ function Hands(){
     // clear interval on re-render to avoid memory leaks
     return () => clearInterval(intervalId);
   }, [currentTime]);
-
-  function calculateAngle(maxNum:number,current:number){
-    return (current%maxNum)*(360.0/maxNum)
-  }
-
-  function calculateFractionalAngle(maxWhole:number,currentWhole:number,maxFraction:number,currentFraction:number){
-    return  (currentWhole%maxWhole + currentFraction*1.0/maxFraction)*(360.0/maxWhole)
-  }
 
 
   function hourAngle() {
@@ -124,17 +125,21 @@ function Face(){
   function Hour(p:HourProp){
     const key = "rhour_"+(p.key ?? p.hour)
     const coordsIndex = p.hour
-    const coords = hourCoords[coordsIndex]
-    return <text
-            key={key}
+    const coords = hourCoords[p.hour]
+    const transform = {transform:`rotate(${calculateAngle(12, p.hour)},${center},${center})`}
+    const transform2 = {transform:`rotate(${-calculateAngle(12, p.hour)},${coords.x},${coords.y})`}
+    return <g key={key}
+    >
+      <text
             fontSize={fontSize}
             fontFamily="DIN Condensed"
-            alignmentBaseline="central"
+            alignmentBaseline="mathematical"
             textAnchor="middle"
             style={{lineHeight:1}}
-            {...coords}>
+            {...coords}
+            >
           {p.hour}
-        </text>
+    </text></g>
   }
 
   function ClockHours(){
@@ -189,9 +194,11 @@ function Circle(){
     return <path
         d={path}
         fill="none"
-        strokeWidth={borderWidth}
+        strokeWidth={2}
         stroke="pink" {...transformOpt} />
   }
-  return <circle cx={center} cy={center} r={outerRadius} stroke="black" strokeWidth={borderWidth} fill="none" />
+  return <g>
+  <circle cx={center} cy={center} r={outerRadius} stroke="black" strokeWidth={borderWidth} fill="none" />
+  </g>
 }
 export default App;
