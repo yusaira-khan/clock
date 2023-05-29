@@ -32,6 +32,10 @@ const outerRadius = center*3/4;
 const fontSize = 60;
 const textRadius = outerRadius-fontSize;
 const borderWidth = 10
+const nicePurple="#9d499d"
+const niceGray="#444"
+const niceYellow="#ffd700"
+const defaultBlack = "#000"
 
 function calculateAngle(maxNum:number,current:number){
     return (current%maxNum)*(360.0/maxNum)
@@ -50,8 +54,8 @@ function Hands(){
     const minuteHandSize= (hourHandSize+secondHandSize)/2
     const minuteHandWidth= (hourHandWidth+secondHandWidth)/2
 
-    type HandProp = {angleFunction: (()=>number), handSize: number, handWidth: number, }
-    function Hand({angleFunction,handSize,handWidth}:HandProp){
+    type HandProp = {angleFunction: (()=>number), handSize: number, handWidth: number,color?:string }
+    function Hand({angleFunction,handSize,handWidth, color=nicePurple}:HandProp){
         const arcRadius = hourHandWidth/2
         const verticalMovement = handSize-arcRadius*2
         return <path
@@ -64,8 +68,8 @@ function Hands(){
           z`
             }
             transform={`rotate(${angleFunction()},${center},${center})`}
-            stroke="black" strokeWidth="1"
-            fill="purple" fillOpacity="80%"
+            stroke={defaultBlack} strokeWidth="1"
+            fill={color}
         />
     }
 
@@ -168,16 +172,18 @@ function Face(){
             {
                 Array(60).fill(0).map(
                     (val,ind)=> {
+                        const isSpecial=(ind%5==0)
                         const key = "minute_"+ind
                         const coords = {x:center,y:center-outerRadius}
-                        const width =3
+                        const width = isSpecial?10:3
+                        const color = isSpecial? niceYellow:nicePurple
                         const length =(outerRadius-textRadius)*0.4
                         const points = {x1:coords.x,x2:coords.x, y1: coords.y, y2:coords.y+length }
                         const angle = ind*6
                         const transformOpt={transform:`rotate(${angle},${center},${center})`}
                         return <line
                             key={key}
-                            stroke="black"
+                            stroke={color}
                             {...transformOpt}
                             strokeWidth={width}
                             strokeLinecap="round"
@@ -196,10 +202,12 @@ function Face(){
 
 function Rims(){
     function MaskedRing({radius,color, border=borderWidth}:CircleProps){
+        const opaque= {color:"white", border:0}
+        const seeThrough= {color:"black", border:0}
         return <g>
             <mask id="rimMask">
-                <Circle radius={radius+border} color="white" border={0}/>
-                <Circle radius={radius} color="black" border={0}/>
+                <Circle radius={radius+border} {...opaque}/>
+                <Circle radius={radius} {...seeThrough}/>
             </mask>
             <Circle radius={radius+border} color={color} border={4} mask="url(#rimMask)"/>
             <Circle radius={radius} border={2} color="none"/>
@@ -208,11 +216,11 @@ function Rims(){
 
     function Rim(){
         // return <Circle radius={outerRadius} color="none" border={borderWidth}/>
-        return <MaskedRing radius={outerRadius} color="#444"/>
+        return <MaskedRing radius={outerRadius} color={nicePurple}/>
     }
 
     function Center(){
-        return <Circle radius={borderWidth} color="gold"/>
+        return <Circle radius={borderWidth} color={niceYellow}/>
     }
     return <g>
         <Rim/>
@@ -244,7 +252,7 @@ function Grids(){
 
 type CircleProps={radius:number,color:string,border?:number,mask?:string}
 function Circle({radius,color,border=1,mask=""}:CircleProps){
-    const borderOpt = {strokeWidth:border, stroke:"black"}
+    const borderOpt = {strokeWidth:border, stroke:defaultBlack}
     return <circle cx={center}
                    cy={center}
                    r={radius}
