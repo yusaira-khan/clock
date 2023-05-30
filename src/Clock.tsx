@@ -165,19 +165,27 @@ function Face(){
 
     type MinuteProp = { minute: number, color: string, width:number};
     function Minute({minute, color, width}:MinuteProp){
-        const coords = {x:center,y:center-outerRadius}
         const length =(outerRadius-textRadius)*0.4
-        const points = {x1:coords.x,x2:coords.x, y1: coords.y, y2:coords.y+length }
+        const adjustedLength = length- width/2
+        const coords = {x:center,y:center-outerRadius}
         const angle = minute*6
         const transformOpt={transform:`rotate(${angle},${center},${center})`}
-        return <line
+        return <path
             key={"minute_"+minute}
-            stroke={color}
             {...transformOpt}
-            strokeWidth={width}
-            strokeLinecap="round"
-            {...points}/>
-
+            fill={color}
+            stroke={defaultBlack} strokeWidth={1}
+            d={`
+            M ${coords.x},${coords.y}
+            h ${-width/2}
+            v ${adjustedLength}
+            a   ${width/2} ${width/2},  
+                0 1 0,
+                ${width} 0
+            v ${-adjustedLength}
+            z
+            `}
+            />
 
     }
     function Minutes(){
@@ -186,7 +194,7 @@ function Face(){
                 Array(60).fill(0).map(
                     (val,ind)=> {
                         const isSpecial=(ind%5===0)
-                        const width = isSpecial?10:3
+                        const width = isSpecial?6:4
                         const color = isSpecial? niceYellow:nicePurple
                         return <Minute minute={ind} color={color} width={width}/>
                     }
