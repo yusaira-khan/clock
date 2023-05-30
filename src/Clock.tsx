@@ -18,6 +18,10 @@ export function useTime(delay:number){
     return currentTime
 }
 
+function useDummyTime(_:number){
+    return new Date("2023-01-01T00:05:10");
+}
+
 export default function Clock(){
     return <svg xmlns="http://www.w3.org/2000/svg" width={sideSize} height={sideSize} version="1.1">
         <Face/>
@@ -46,28 +50,30 @@ function calculateFractionalAngle(maxWhole:number,currentWhole:number,maxFractio
 }
 
 function Hands(){
-    // const currentTime = new Date("July 21, 1983 09:15:45");
-    const hourHandSize= outerRadius*0.6
-    const hourHandWidth= 10
-    const secondHandSize= textRadius
-    const secondHandWidth= 4
-    const minuteHandSize= (hourHandSize+secondHandSize)/2
-    const minuteHandWidth= (hourHandWidth+secondHandWidth)/2
+    const hourLength= outerRadius*0.6
+    const hourWidth= 10
+    const secondLength= textRadius
+    const secondWidth= 4
+    const minuteLength= (hourLength+secondLength)/2
+    const minuteWidth= (hourWidth+secondWidth)/2
 
-    type HandProp = {angleFunction: (()=>number), handSize: number, handWidth: number,color?:string }
-    function Hand({angleFunction,handSize,handWidth, color=nicePurple}:HandProp){
-        const arcRadius = hourHandWidth/2
-        const verticalMovement = handSize-arcRadius*2
+    type HandProp = {angle: (()=>number), length: number, width: number,color?:string }
+    function Hand({angle,length,width, color=nicePurple}:HandProp){
+        const arcRadius = hourWidth
+        const adjustedLength = length-arcRadius
         return <path
             d={
-                ` M ${center},${center} 
-          h ${-handWidth/2} 
-          v ${-(verticalMovement)} 
-          c ${0} ${-arcRadius*2} , ${handWidth} ${-arcRadius*2}, ${handWidth} 0  
-          v ${verticalMovement} 
-          z`
+                `   M ${center},${center}
+                    h ${-width/2}
+                    v ${-(adjustedLength)}
+                    c   ${0} ${-arcRadius},
+                        ${width} ${-arcRadius},
+                        ${width} 0
+                    v ${adjustedLength}
+                    z
+                `
             }
-            transform={`rotate(${angleFunction()},${center},${center})`}
+            transform={`rotate(${angle()},${center},${center})`}
             stroke={defaultBlack} strokeWidth="1"
             fill={color}
         />
@@ -75,37 +81,28 @@ function Hands(){
 
     function SecondHand(){
         const currentTime = useTime(1)
-        function secondAngle() {
-            return calculateAngle(60, currentTime.getSeconds())
-        }
         return <Hand
-            angleFunction={secondAngle}
-            handSize={secondHandSize}
-            handWidth={secondHandWidth}
+            angle={()=>calculateAngle(60, currentTime.getSeconds())}
+            length={secondLength}
+            width={secondWidth}
         />
     }
 
     function MinuteHand(){
         const currentTime = useTime(15)
-        function minuteAngle() {
-            return calculateFractionalAngle(60, currentTime.getMinutes(), 60,currentTime.getSeconds())
-        }
         return <Hand
-            angleFunction={minuteAngle}
-            handSize={minuteHandSize}
-            handWidth={minuteHandWidth}
+            angle={()=>calculateFractionalAngle( 60, currentTime.getMinutes(), 60,currentTime.getSeconds())}
+            length={minuteLength}
+            width={minuteWidth}
         />
     }
 
     function HourHand(){
         const currentTime = useTime(60)
-        function hourAngle() {
-            return calculateFractionalAngle(12, currentTime.getHours(), 60,currentTime.getMinutes())
-        }
         return <Hand
-            angleFunction={hourAngle}
-            handSize={hourHandSize}
-            handWidth={hourHandWidth}
+            angle={()=>calculateFractionalAngle( 12, currentTime.getHours(), 60, currentTime.getMinutes())}
+            length={hourLength}
+            width={hourWidth}
         />
     }
 
@@ -139,22 +136,20 @@ function Face(){
 
     type HourProp = { hour: number};
     function Hour(p:HourProp){
-        const key = "rhour_"+p.hour
         const coords = hourCoords[p.hour]
         const transform = {transform:`rotate(${calculateAngle(12, p.hour)},${center},${center})`}
         const antiTransform = {transform:`rotate(${-calculateAngle(12, p.hour)},${coords.x},${coords.y})`}
-        return <g key={key}
-        >
+        return <g key={"rhour_"+p.hour} >
             <text
                 fontSize={fontSize}
                 fontFamily="DIN Condensed"
                 alignmentBaseline="mathematical"
                 textAnchor="middle"
-                style={{lineHeight:1}}
                 {...coords}
             >
-                {p.hour}
-            </text></g>
+            {p.hour}
+            </text>
+        </g>
     }
     function Hours(){
         return <g id="hours">
@@ -167,27 +162,33 @@ function Face(){
                 )}
         </g>
     }
+
+    type MinuteProp = { minute: number, color: string, width:number};
+    function Minute({minute, color, width}:MinuteProp){
+        const coords = {x:center,y:center-outerRadius}
+        const length =(outerRadius-textRadius)*0.4
+        const points = {x1:coords.x,x2:coords.x, y1: coords.y, y2:coords.y+length }
+        const angle = minute*6
+        const transformOpt={transform:`rotate(${angle},${center},${center})`}
+        return <line
+            key={"minute_"+minute}
+            stroke={color}
+            {...transformOpt}
+            strokeWidth={width}
+            strokeLinecap="round"
+            {...points}/>
+
+
+    }
     function Minutes(){
         return <g id="minutes">
             {
                 Array(60).fill(0).map(
                     (val,ind)=> {
-                        const isSpecial=(ind%5==0)
-                        const key = "minute_"+ind
-                        const coords = {x:center,y:center-outerRadius}
+                        const isSpecial=(ind%5===0)
                         const width = isSpecial?10:3
                         const color = isSpecial? niceYellow:nicePurple
-                        const length =(outerRadius-textRadius)*0.4
-                        const points = {x1:coords.x,x2:coords.x, y1: coords.y, y2:coords.y+length }
-                        const angle = ind*6
-                        const transformOpt={transform:`rotate(${angle},${center},${center})`}
-                        return <line
-                            key={key}
-                            stroke={color}
-                            {...transformOpt}
-                            strokeWidth={width}
-                            strokeLinecap="round"
-                            {...points}/>
+                        return <Minute minute={ind} color={color} width={width}/>
                     }
                 )}
         </g>
