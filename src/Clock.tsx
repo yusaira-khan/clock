@@ -26,7 +26,7 @@ export default function Clock(){
     return <svg xmlns="http://www.w3.org/2000/svg" width={sideSize} height={sideSize} version="1.1">
         <Face/>
         <Hands/>
-        <Rims/>
+        <Decorations/>
     </svg>
 }
 
@@ -35,11 +35,19 @@ const center = sideSize/2;
 const outerRadius = center*3/4;
 const fontSize = 60;
 const textRadius = outerRadius-fontSize;
-const borderWidth = 10
-const nicePurple="#9d499d"
+const rimWidth = 10
+const basePurple="#9d499d"
+const blueConstrastYellow="rgb(66,89,255)"
+const darkBlue="#3e4a9b"
+const nicePurple=basePurple
+const greenConstrast ="#50ae50"
+const brightGreen ="#57d957"
 const niceGray="#444"
-const niceYellow="#ffd700"
+const lightGray="#666"
+const baseYellow="#ffd700"
+const niceYellow= baseYellow
 const defaultBlack = "#000"
+const outline= {strokeWidth: 2,stroke:niceGray}
 
 function calculateAngle(maxNum:number,current:number){
     return (current%maxNum)*(360.0/maxNum)
@@ -74,8 +82,9 @@ function Hands(){
                 `
             }
             transform={`rotate(${angle()},${center},${center})`}
-            stroke={defaultBlack} strokeWidth="1"
+            {...outline}
             fill={color}
+            fillOpacity={"80%"}
         />
     }
 
@@ -106,27 +115,38 @@ function Hands(){
         />
     }
 
-    return <g>
+    return <g id="hands">
         <HourHand/>
         <MinuteHand/>
         <SecondHand/>
     </g>
 }
 
-function Face(){
 
-    type HourProp = { hour: number};
-    function Hour(p:HourProp){
+function Face(){
+    type HourDisplayProps = {hour: number};
+    function HourTextDisplay(p:HourDisplayProps){
+        const plainFont={
+            fontFamily:"DIN Condensed",
+            fill:niceGray
+        }
+        const colorFont={
+            fontFamily: "Gill Sans",
+            fontWeight: "bold",
+                ...outline,
+            fill:(p.hour%3==0)?nicePurple: lightGray,
+            strokeLineJoin:"round"
+        }
         const coords = {x:center,y:center-textRadius}
         const angle=calculateAngle(12, p.hour)
         const transform = {transform:`rotate(${angle},${center},${center}),rotate(${-angle},${coords.x},${coords.y})`}
-        return <g key={"rhour_"+p.hour} {...transform}>
+        return <g key={"hour_"+p.hour} {...transform}>
             <text
                 fontSize={fontSize}
-                fontFamily="DIN Condensed"
                 alignmentBaseline="mathematical"
                 textAnchor="middle"
                 {...coords}
+                {...colorFont}
             >
             {p.hour}
             </text>
@@ -138,24 +158,23 @@ function Face(){
                 Array(12).fill('').map(
                     (_,ind)=> {
                         const h = ind + 1
-                        return <Hour hour={h}/>
+                        return <HourTextDisplay hour={h}/>
                     }
                 )}
         </g>
     }
 
-    type MinuteProp = { minute: number, color: string, width:number};
-    function Minute({minute, color, width}:MinuteProp){
+    type MinuteDisplayProps = { minute: number, color: string, width:number};
+    function MinuteStrokeDisplay({minute, color, width}:MinuteDisplayProps){
         const length =(outerRadius-textRadius)*0.4
         const adjustedLength = length- width/2
         const coords = {x:center,y:center-outerRadius}
-        const angle = minute*6
-        const transformOpt={transform:`rotate(${angle},${center},${center})`}
+        const transform={transform:`rotate(${minute*6},${center},${center})`}
         return <path
             key={"minute_"+minute}
-            {...transformOpt}
+            {...transform}
             fill={color}
-            stroke={defaultBlack} strokeWidth={1}
+            {...outline}
             d={`
             M ${coords.x},${coords.y}
             h ${-width/2}
@@ -177,7 +196,7 @@ function Face(){
                         const isSpecial=(ind%5===0)
                         const width = isSpecial?6:4
                         const color = isSpecial? niceYellow:nicePurple
-                        return <Minute minute={ind} color={color} width={width}/>
+                        return <MinuteStrokeDisplay minute={ind} color={color} width={width}/>
                     }
                 )}
         </g>
@@ -190,55 +209,14 @@ function Face(){
 }
 
 
-function Rims(){
-    function MaskedRing({radius,color, border=borderWidth}:CircleProps){
-        const opaque= {color:"white", border:0}
-        const seeThrough= {color:"black", border:0}
-        return <g>
-            <mask id="rimMask">
-                <Circle radius={radius+border} {...opaque}/>
-                <Circle radius={radius} {...seeThrough}/>
-            </mask>
-            <Circle radius={radius+border} color={color} border={4} mask="url(#rimMask)"/>
-            <Circle radius={radius} border={2} color="none"/>
-        </g>
-    }
-
-    function PathRing({radius, color,border=borderWidth}:CircleProps){
-        const ringOuterRadius = radius+border
-        return <path
-            d={`
-            M  ${center} ${center-ringOuterRadius}
-            a   ${ringOuterRadius} ${ringOuterRadius}
-                0 1 0
-                0 ${ringOuterRadius*2}
-            a   ${ringOuterRadius} ${ringOuterRadius}
-                0 1 0
-                0 ${-ringOuterRadius*2}
-            m   0 ${border}
-            a   ${radius} ${radius}
-                0 1 1
-                0 ${radius*2}
-            a   ${radius} ${radius}
-                0 1 1
-                0 ${-radius*2}
-            `}
-            fill={color}
-            stroke={defaultBlack} strokeWidth={1}
-        />
-    }
-
-
+function Decorations(){
     function Rim(){
-        // return <Circle radius={outerRadius} color="none" border={borderWidth}/>
-        //return <MaskedRing radius={outerRadius} color={nicePurple}/>
-        return <PathRing radius={outerRadius} color={nicePurple}/>
+        return <Ring outerRadius={outerRadius+rimWidth} innerRadius={outerRadius} color={nicePurple}/>
     }
-
     function Center(){
-        return <Circle radius={borderWidth} color={niceYellow}/>
+        return <Circle radius={rimWidth} color={niceYellow}/>
     }
-    return <g>
+    return <g id="decoration">
         <Rim/>
         <Center/>
     </g>
@@ -267,8 +245,8 @@ function Grids(){
 }
 
 type CircleProps={radius:number,color:string,border?:number,mask?:string}
-function Circle({radius,color,border=1,mask=""}:CircleProps){
-    const borderOpt = {strokeWidth:border, stroke:defaultBlack}
+function Circle({radius,color,border=outline.strokeWidth,mask=""}:CircleProps){
+    const borderOpt = {strokeWidth:border, stroke:outline.stroke}
     return <circle cx={center}
                    cy={center}
                    r={radius}
@@ -276,4 +254,68 @@ function Circle({radius,color,border=1,mask=""}:CircleProps){
                    {...(border>0? borderOpt:{})}
                    mask={mask}
     />
+}
+
+type RingProps={innerRadius:number,outerRadius:number,color:string}
+function Ring(p:RingProps) {
+    function MaskedRing({
+                            innerRadius,
+                            outerRadius,
+                            color
+                        }: RingProps) {
+        const opaque = {
+            color: "white",
+            border: 0
+        }
+        const seeThrough = {
+            color: "black",
+            border: 0
+        }
+        return <g>
+            <mask
+                id="rimMask">
+                <Circle
+                    radius={outerRadius} {...opaque}/>
+                <Circle
+                    radius={innerRadius} {...seeThrough}/>
+            </mask>
+            <Circle
+                radius={outerRadius}
+                color={color}
+                border={outline.strokeWidth}
+                mask="url(#rimMask)"/>
+            <Circle
+                radius={innerRadius}
+                border={outline.strokeWidth/2}
+                color="none"/>
+        </g>
+    }
+
+    function PathRing({
+                          innerRadius,
+                          outerRadius,
+                          color
+                      }: RingProps) {
+        return <path
+            d={`
+            M  ${center} ${center - outerRadius}
+            a   ${outerRadius} ${outerRadius}
+                0 0 0
+                0 ${outerRadius * 2}
+            a   ${outerRadius} ${outerRadius}
+                0 0 0
+                0 ${-outerRadius * 2}
+            M   ${center} ${center - innerRadius}
+            a   ${innerRadius} ${innerRadius}
+                0 0 1
+                0 ${innerRadius * 2}
+            a   ${innerRadius} ${innerRadius}
+                0 0 1
+                0 ${-innerRadius * 2}
+            `}
+            fill={color}
+            {...outline}
+        />
+    }
+    return PathRing(p)
 }
