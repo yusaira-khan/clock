@@ -114,32 +114,13 @@ function Hands(){
 }
 
 function Face(){
-    const sin30 = 0.5
-    const cos30 = 0.86602540378
-    const dsin30 = sin30 * textRadius;
-    const dcos30 = cos30 * textRadius
-    const hourCoords=[
-        {x:0,y:0}, //0
-        {x:center+dsin30,y:center-dcos30} , //1
-        {x:center+dcos30,y:center-dsin30} , //2
-        {x:center+textRadius,y:center} , //3
-        {x:center+dcos30,y:center+dsin30} , //4
-        {x:center+dsin30,y:center+dcos30} , //5
-        {x:center,y:center+textRadius} , //6
-        {x:center-dsin30,y:center+dcos30} , //7
-        {x:center-dcos30,y:center+dsin30} , //8
-        {x:center-textRadius,y:center} , //9
-        {x:center-dcos30,y:center-dsin30} , //10
-        {x:center-dsin30,y:center-dcos30} , //11
-        {x:center,y:center-textRadius} , //12
-    ]
 
     type HourProp = { hour: number};
     function Hour(p:HourProp){
-        const coords = hourCoords[p.hour]
-        const transform = {transform:`rotate(${calculateAngle(12, p.hour)},${center},${center})`}
-        const antiTransform = {transform:`rotate(${-calculateAngle(12, p.hour)},${coords.x},${coords.y})`}
-        return <g key={"rhour_"+p.hour} >
+        const coords = {x:center,y:center-textRadius}
+        const angle=calculateAngle(12, p.hour)
+        const transform = {transform:`rotate(${angle},${center},${center}),rotate(${-angle},${coords.x},${coords.y})`}
+        return <g key={"rhour_"+p.hour} {...transform}>
             <text
                 fontSize={fontSize}
                 fontFamily="DIN Condensed"
@@ -223,9 +204,35 @@ function Rims(){
         </g>
     }
 
+    function PathRing({radius, color,border=borderWidth}:CircleProps){
+        const ringOuterRadius = radius+border
+        return <path
+            d={`
+            M  ${center} ${center-ringOuterRadius}
+            a   ${ringOuterRadius} ${ringOuterRadius}
+                0 1 0
+                0 ${ringOuterRadius*2}
+            a   ${ringOuterRadius} ${ringOuterRadius}
+                0 1 0
+                0 ${-ringOuterRadius*2}
+            m   0 ${border}
+            a   ${radius} ${radius}
+                0 1 1
+                0 ${radius*2}
+            a   ${radius} ${radius}
+                0 1 1
+                0 ${-radius*2}
+            `}
+            fill={color}
+            stroke={defaultBlack} strokeWidth={1}
+        />
+    }
+
+
     function Rim(){
         // return <Circle radius={outerRadius} color="none" border={borderWidth}/>
-        return <MaskedRing radius={outerRadius} color={nicePurple}/>
+        //return <MaskedRing radius={outerRadius} color={nicePurple}/>
+        return <PathRing radius={outerRadius} color={nicePurple}/>
     }
 
     function Center(){
